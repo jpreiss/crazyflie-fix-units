@@ -29,7 +29,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "imu_types.h"
-#include "lighthouse_geometry.h"
+
+// Definitions below copied from lighthouse_geometry.h to break transitive ARM dependency.
+#define vec3d_size 3
+typedef float vec3d[vec3d_size];
+typedef float mat3d[vec3d_size][vec3d_size];
 
 /* Data structure used by the stabilizer subsystem.
  * All have a timestamp to be set when the data is calculated.
