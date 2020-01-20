@@ -50,6 +50,23 @@ We begin by copying the relevant source files to a new directory:
 
 We then write a generic makefile that compiles all C sources, and start removing irrelevant code that causes compile errors.
 Instead of documenting each change we need to make, we will make a series of commits to this repository, so the diffs can be inspected.
+These commits take place between #7dac948 and #4564b1d.
+
+
+Initial outputs
+---------------
+
+In #d58e794, we add code to generate random state, setpoint, and sensor inputs to the controller.
+Note that for each trial, we generate these once but then run the controller 10 times.
+This ensures that we are testing the integral terms in the PID controller also.
+
+We write the output motor ratios into a text file `original_outputs.txt`.
+Looking at this file, we can see that some sequences have all zero outputs.
+This is to be expected, since our totally random states and setpoints mean that if the setpoint
+position is below the state, the best thing to do is output zero thrust.
+For the nonzero sequences, we can observe small variations from the PID integral term.
+
+We use a Python script to parse the and compare text outputs.
 
 
 [1] Förster, Julian. System Identification of the Crazyflie 2.0 Nano Quadrocopter. Bachelor Thesis. ETH Zürich. 2015.
