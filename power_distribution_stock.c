@@ -43,11 +43,11 @@ void powerDistribution(const control_t *control)
 {
   float const r_torque = RP_INERTIA * control->angular_accel.x;
   float const p_torque = RP_INERTIA * control->angular_accel.y;
-  // float const y_torque = YAW_INERTIA * control->angular_accel.z;
+  float const y_torque = YAW_INERTIA * control->angular_accel.z;
 
   float const r = r_torque / (4.0f * RP_ARM);
   float const p = p_torque / (4.0f * RP_ARM);
-  float const y = control->yaw / 4.0f;
+  float const y = y_torque / (4.0f * TORQUE_THRUST_RATIO);
 
   motorPower.m1 = limitThrust((MASS/4.0) * control->z_accel - r + p + y);
   motorPower.m2 = limitThrust((MASS/4.0) * control->z_accel - r - p - y);

@@ -65,9 +65,9 @@ static float ki_m_xy = (RP_ARM / RP_INERTIA) * 2.0 * 0.0; // I
 static float i_range_m_xy = 1.0;
 
 // Yaw
-static float kR_z = 4.0 * 60000; // P
-static float kw_z = 4.0 * 12000; // D
-static float ki_m_z = 4.0 * 500; // I
+static float kR_z = (TORQUE_THRUST_RATIO / YAW_INERTIA) * 4.0 * 60000; // P
+static float kw_z = (TORQUE_THRUST_RATIO / YAW_INERTIA) * 4.0 * 12000; // D
+static float ki_m_z = (TORQUE_THRUST_RATIO / YAW_INERTIA) * 4.0 * 500; // I
 static float i_range_m_z  = 1500;
 
 // roll and pitch angular velocity
@@ -265,13 +265,12 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
   accelz = sensors->acc.z;
 
   if (control->z_accel > 0) {
-    control->angular_accel.x = clamp(M.x, -(RP_ARM / RP_INERTIA) *64000, (RP_ARM / RP_INERTIA) *64000);
-    control->angular_accel.y = clamp(M.y, -(RP_ARM / RP_INERTIA) *64000, (RP_ARM / RP_INERTIA) *64000);
-    control->yaw = clamp(-M.z, -128000, 128000);
+    control->angular_accel.x = clamp(M.x, -(RP_ARM / RP_INERTIA) * 64000, (RP_ARM / RP_INERTIA) * 64000);
+    control->angular_accel.y = clamp(M.y, -(RP_ARM / RP_INERTIA) * 64000, (RP_ARM / RP_INERTIA) * 64000);
+    control->angular_accel.z = clamp(-M.z, -(TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000, (TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000);
 
   } else {
     control->angular_accel = vzero();
-    control->yaw = 0;
     controllerMellingerReset();
   }
 }

@@ -161,7 +161,6 @@ typedef struct state_s {
 } state_t;
 
 typedef struct control_s {
-  int32_t yaw;
   struct vec angular_accel;
   float z_accel;
 } control_t;
