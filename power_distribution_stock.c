@@ -37,13 +37,18 @@ static struct {
 } motorPower;
 
 #define limitThrust(VAL) limitUint16(VAL)
-#define MASS (0.032f)
+
 
 void powerDistribution(const control_t *control)
 {
-  int16_t r = control->roll / 4.0f;
-  int16_t p = control->pitch / 4.0f;
-  int16_t y = control->yaw / 4.0f;
+  float const r_torque = RP_INERTIA * control->angular_accel.x;
+  float const p_torque = RP_INERTIA * control->angular_accel.y;
+  // float const y_torque = YAW_INERTIA * control->angular_accel.z;
+
+  float const r = r_torque / (4.0f * RP_ARM);
+  float const p = p_torque / (4.0f * RP_ARM);
+  float const y = control->yaw / 4.0f;
+
   motorPower.m1 = limitThrust((MASS/4.0) * control->z_accel - r + p + y);
   motorPower.m2 = limitThrust((MASS/4.0) * control->z_accel - r - p - y);
   motorPower.m3 =  limitThrust((MASS/4.0) * control->z_accel + r - p + y);

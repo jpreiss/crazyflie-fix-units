@@ -43,7 +43,6 @@ We added the following:
 #include "controller_mellinger.h"
 
 #define GRAVITY_MAGNITUDE (9.81f)
-#define MASS (0.032f)
 
 static float massThrust = 132000 * 4.0f;
 
@@ -60,9 +59,9 @@ static float ki_z = 0.05 / MASS;       // I
 static float i_range_z  = 0.4;
 
 // Attitude
-static float kR_xy = 2.0 * 70000; // P
-static float kw_xy = 2.0 * 20000; // D
-static float ki_m_xy = 2.0 * 0.0; // I
+static float kR_xy = (RP_ARM / RP_INERTIA) * 2.0 * 70000; // P
+static float kw_xy = (RP_ARM / RP_INERTIA) * 2.0 * 20000; // D
+static float ki_m_xy = (RP_ARM / RP_INERTIA) * 2.0 * 0.0; // I
 static float i_range_m_xy = 1.0;
 
 // Yaw
@@ -72,7 +71,7 @@ static float ki_m_z = 4.0 * 500; // I
 static float i_range_m_z  = 1500;
 
 // roll and pitch angular velocity
-static float kd_omega_rp = 2.0 * 200; // D
+static float kd_omega_rp = (RP_ARM / RP_INERTIA) * 2.0 * 200; // D
 
 
 // Helper variables
@@ -266,13 +265,12 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
   accelz = sensors->acc.z;
 
   if (control->z_accel > 0) {
-    control->roll = clamp(M.x, -64000, 64000);
-    control->pitch = clamp(M.y, -64000, 64000);
+    control->angular_accel.x = clamp(M.x, -(RP_ARM / RP_INERTIA) *64000, (RP_ARM / RP_INERTIA) *64000);
+    control->angular_accel.y = clamp(M.y, -(RP_ARM / RP_INERTIA) *64000, (RP_ARM / RP_INERTIA) *64000);
     control->yaw = clamp(-M.z, -128000, 128000);
 
   } else {
-    control->roll = 0;
-    control->pitch = 0;
+    control->angular_accel = vzero();
     control->yaw = 0;
     controllerMellingerReset();
   }

@@ -26,9 +26,11 @@
 #ifndef __STABILIZER_TYPES_H__
 #define __STABILIZER_TYPES_H__
 
+#include <math.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "imu_types.h"
+#include "math3d.h"
 
 // Definitions below copied from lighthouse_geometry.h to break transitive ARM dependency.
 #define vec3d_size 3
@@ -159,9 +161,8 @@ typedef struct state_s {
 } state_t;
 
 typedef struct control_s {
-  int32_t roll;
-  int32_t pitch;
   int32_t yaw;
+  struct vec angular_accel;
   float z_accel;
 } control_t;
 
@@ -270,5 +271,13 @@ typedef struct {
 #define POSITION_RATE RATE_100_HZ
 
 #define RATE_DO_EXECUTE(RATE_HZ, TICK) ((TICK % (RATE_MAIN_LOOP / RATE_HZ)) == 0)
+
+
+#define MASS (0.032f)   // kg
+#define YAW_ARM (0.046) // mm
+#define RP_ARM (YAW_ARM / M_SQRT_2)
+#define YAW_INERTIA (2.98e-5)
+#define RP_INERTIA (1.68e-5)
+#define TORQUE_THRUST_RATIO (5.96e-3)
 
 #endif

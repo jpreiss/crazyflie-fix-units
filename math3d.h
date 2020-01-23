@@ -34,6 +34,10 @@ SOFTWARE.
 #define M_PI_2_F (1.57079632679f)
 #endif
 
+#ifndef M_SQRT_2
+#define M_SQRT_2 (1.41421356237)
+#endif
+
 
 // ----------------------------- scalars --------------------------------
 
