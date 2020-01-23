@@ -162,7 +162,7 @@ typedef struct control_s {
   int16_t roll;
   int16_t pitch;
   int16_t yaw;
-  float thrust;
+  float z_accel;
 } control_t;
 
 typedef enum mode_e {

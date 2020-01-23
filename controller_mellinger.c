@@ -35,6 +35,7 @@ We added the following:
  * Support to use this controller as an attitude-only controller for manual flight
 */
 
+#include <assert.h>
 #include <math.h>
 
 #include "math3d.h"
@@ -42,20 +43,20 @@ We added the following:
 #include "controller_mellinger.h"
 
 #define GRAVITY_MAGNITUDE (9.81f)
+#define MASS (0.032f)
 
-static float g_vehicleMass = 0.032; // TODO: should be CF global for other modules
 static float massThrust = 132000;
 
 // XY Position PID
-static float kp_xy = 0.4;       // P
-static float kd_xy = 0.2;       // D
-static float ki_xy = 0.05;      // I
+static float kp_xy = 0.4 / MASS;       // P
+static float kd_xy = 0.2 / MASS;       // D
+static float ki_xy = 0.05 / MASS;      // I
 static float i_range_xy = 2.0;
 
 // Z Position
-static float kp_z = 1.25;       // P
-static float kd_z = 0.4;        // D
-static float ki_z = 0.05;       // I
+static float kp_z = 1.25 / MASS;       // P
+static float kd_z = 0.4 / MASS;        // D
+static float ki_z = 0.05 / MASS;       // I
 static float i_range_z  = 0.4;
 
 // Attitude
@@ -91,10 +92,6 @@ static float i_error_m_z = 0;
 // Logging variables
 static struct vec z_axis_desired;
 
-static float cmd_thrust;
-static float cmd_roll;
-static float cmd_pitch;
-static float cmd_yaw;
 static float r_roll;
 static float r_pitch;
 static float r_yaw;
@@ -155,19 +152,11 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
 
   // Desired thrust [F_des]
   if (setpoint->mode.x == modeAbs) {
-    target_thrust.x = g_vehicleMass * setpoint->acceleration.x                       + kp_xy * r_error.x + kd_xy * v_error.x + ki_xy * i_error_x;
-    target_thrust.y = g_vehicleMass * setpoint->acceleration.y                       + kp_xy * r_error.y + kd_xy * v_error.y + ki_xy * i_error_y;
-    target_thrust.z = g_vehicleMass * (setpoint->acceleration.z + GRAVITY_MAGNITUDE) + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
+    target_thrust.x = setpoint->acceleration.x                       + kp_xy * r_error.x + kd_xy * v_error.x + ki_xy * i_error_x;
+    target_thrust.y = setpoint->acceleration.y                       + kp_xy * r_error.y + kd_xy * v_error.y + ki_xy * i_error_y;
+    target_thrust.z = (setpoint->acceleration.z + GRAVITY_MAGNITUDE) + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
   } else {
-    target_thrust.x = -sinf(radians(setpoint->attitude.pitch));
-    target_thrust.y = -sinf(radians(setpoint->attitude.roll));
-    // In case of a timeout, the commander tries to level, ie. x/y are disabled, but z will use the previous setting
-    // In that case we ignore the last feedforward term for acceleration
-    if (setpoint->mode.z == modeAbs) {
-      target_thrust.z = g_vehicleMass * GRAVITY_MAGNITUDE + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
-    } else {
-      target_thrust.z = 1;
-    }
+    assert(false);
   }
 
   // Rate-controlled YAW is moving YAW angle setpoint
@@ -188,12 +177,7 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
 
   // yaw correction (only if position control is not used)
   if (setpoint->mode.x != modeAbs) {
-    struct vec x_yaw = mcolumn(R, 0);
-    x_yaw.z = 0;
-    x_yaw = vnormalize(x_yaw);
-    struct vec y_yaw = vcross(mkvec(0, 0, 1), x_yaw);
-    struct mat33 R_yaw_only = mcolumns(x_yaw, y_yaw, mkvec(0, 0, 1));
-    target_thrust = mvmul(R_yaw_only, target_thrust);
+    assert(false);
   }
 
   // Current thrust [F]
@@ -277,35 +261,25 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
 
   // Output
   if (setpoint->mode.z == modeDisable) {
-    control->thrust = setpoint->thrust;
+    assert(false);
   } else {
-    control->thrust = massThrust * current_thrust;
+    control->z_accel = massThrust * current_thrust;
   }
 
-  cmd_thrust = control->thrust;
   r_roll = radians(sensors->gyro.x);
   r_pitch = -radians(sensors->gyro.y);
   r_yaw = radians(sensors->gyro.z);
   accelz = sensors->acc.z;
 
-  if (control->thrust > 0) {
+  if (control->z_accel > 0) {
     control->roll = clamp(M.x, -32000, 32000);
     control->pitch = clamp(M.y, -32000, 32000);
     control->yaw = clamp(-M.z, -32000, 32000);
-
-    cmd_roll = control->roll;
-    cmd_pitch = control->pitch;
-    cmd_yaw = control->yaw;
 
   } else {
     control->roll = 0;
     control->pitch = 0;
     control->yaw = 0;
-
-    cmd_roll = control->roll;
-    cmd_pitch = control->pitch;
-    cmd_yaw = control->yaw;
-
     controllerMellingerReset();
   }
 }
