@@ -41,12 +41,13 @@ static struct {
 
 void powerDistribution(const control_t *control)
 {
-  int16_t r = control->roll / 2.0f;
-  int16_t p = control->pitch / 2.0f;
-  motorPower.m1 = limitThrust(MASS * control->z_accel - r + p + control->yaw);
-  motorPower.m2 = limitThrust(MASS * control->z_accel - r - p - control->yaw);
-  motorPower.m3 =  limitThrust(MASS * control->z_accel + r - p + control->yaw);
-  motorPower.m4 =  limitThrust(MASS * control->z_accel + r + p - control->yaw);
+  int16_t r = control->roll / 4.0f;
+  int16_t p = control->pitch / 4.0f;
+  int16_t y = control->yaw / 4.0f;
+  motorPower.m1 = limitThrust((MASS/4.0) * control->z_accel - r + p + y);
+  motorPower.m2 = limitThrust((MASS/4.0) * control->z_accel - r - p - y);
+  motorPower.m3 =  limitThrust((MASS/4.0) * control->z_accel + r - p + y);
+  motorPower.m4 =  limitThrust((MASS/4.0) * control->z_accel + r + p - y);
 
   motorsSetRatio(MOTOR_M1, motorPower.m1);
   motorsSetRatio(MOTOR_M2, motorPower.m2);

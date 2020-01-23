@@ -45,7 +45,7 @@ We added the following:
 #define GRAVITY_MAGNITUDE (9.81f)
 #define MASS (0.032f)
 
-static float massThrust = 132000;
+static float massThrust = 132000 * 4.0f;
 
 // XY Position PID
 static float kp_xy = 0.4 / MASS;       // P
@@ -60,19 +60,19 @@ static float ki_z = 0.05 / MASS;       // I
 static float i_range_z  = 0.4;
 
 // Attitude
-static float kR_xy = 70000; // P
-static float kw_xy = 20000; // D
-static float ki_m_xy = 0.0; // I
+static float kR_xy = 2.0 * 70000; // P
+static float kw_xy = 2.0 * 20000; // D
+static float ki_m_xy = 2.0 * 0.0; // I
 static float i_range_m_xy = 1.0;
 
 // Yaw
-static float kR_z = 60000; // P
-static float kw_z = 12000; // D
-static float ki_m_z = 500; // I
+static float kR_z = 4.0 * 60000; // P
+static float kw_z = 4.0 * 12000; // D
+static float ki_m_z = 4.0 * 500; // I
 static float i_range_m_z  = 1500;
 
 // roll and pitch angular velocity
-static float kd_omega_rp = 200; // D
+static float kd_omega_rp = 2.0 * 200; // D
 
 
 // Helper variables
@@ -92,9 +92,6 @@ static float i_error_m_z = 0;
 // Logging variables
 static struct vec z_axis_desired;
 
-static float r_roll;
-static float r_pitch;
-static float r_yaw;
 static float accelz;
 
 void controllerMellingerReset(void)
@@ -266,15 +263,12 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
     control->z_accel = massThrust * current_thrust;
   }
 
-  r_roll = radians(sensors->gyro.x);
-  r_pitch = -radians(sensors->gyro.y);
-  r_yaw = radians(sensors->gyro.z);
   accelz = sensors->acc.z;
 
   if (control->z_accel > 0) {
-    control->roll = clamp(M.x, -32000, 32000);
-    control->pitch = clamp(M.y, -32000, 32000);
-    control->yaw = clamp(-M.z, -32000, 32000);
+    control->roll = clamp(M.x, -64000, 64000);
+    control->pitch = clamp(M.y, -64000, 64000);
+    control->yaw = clamp(-M.z, -128000, 128000);
 
   } else {
     control->roll = 0;
