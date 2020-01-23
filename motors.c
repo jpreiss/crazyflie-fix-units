@@ -29,6 +29,7 @@
 #include <stdbool.h>
 
 #include "motors.h"
+#include "math3d.h"
 
 
 uint32_t motor_ratios[] = {0, 0, 0, 0};
@@ -43,14 +44,14 @@ static float pmGetBatteryVoltage()
 
 /* Public functions */
 
-// Ithrust is thrust mapped for 65536 <==> 60 grams
+// Ithrust is thrust mapped for 65536 <==> 60 grams TOTAL thrust (15g per motor)
 void motorsSetRatio(uint32_t id, uint16_t ithrust)
 {
   uint16_t ratio;
   ratio = ithrust;
 
-  float thrust = ((float)ithrust / 65536.0f) * 60;
-  float volts = -0.0006239f * thrust * thrust + 0.088f * thrust;
+  float thrust = ((float)ithrust / 65536.0f) * 0.015;
+  float volts = -(SQR(1000.0f) * SQR(4.0)) * 0.0006239f * thrust * thrust + (1000.0f * 4.0) * 0.088f * thrust;
   float supply_voltage = pmGetBatteryVoltage();
   float percentage = volts / supply_voltage;
   percentage = percentage > 1.0f ? 1.0f : percentage;
