@@ -44,19 +44,20 @@ We added the following:
 
 #define GRAVITY_MAGNITUDE (9.81)
 #define MOTOR_UNIT (0.015 / 65536)
+#define MASS_THRUST (132000 * 4.0)
 
-static float massThrust = 132000 * 4.0f;
+#define POS_GAIN_SCALE (MOTOR_UNIT * MASS_THRUST / MASS)
 
 // XY Position PID
-static float kp_xy = 0.4 / MASS;       // P
-static float kd_xy = 0.2 / MASS;       // D
-static float ki_xy = 0.05 / MASS;      // I
+static float kp_xy = POS_GAIN_SCALE * 0.4;       // P
+static float kd_xy = POS_GAIN_SCALE * 0.2;       // D
+static float ki_xy = POS_GAIN_SCALE * 0.05;      // I
 static float i_range_xy = 2.0;
 
 // Z Position
-static float kp_z = 1.25 / MASS;       // P
-static float kd_z = 0.4 / MASS;        // D
-static float ki_z = 0.05 / MASS;       // I
+static float kp_z = POS_GAIN_SCALE * 1.25;       // P
+static float kd_z = POS_GAIN_SCALE * 0.4;        // D
+static float ki_z = POS_GAIN_SCALE * 0.05;       // I
 static float i_range_z  = 0.4;
 
 // Attitude
@@ -149,9 +150,9 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
 
   // Desired thrust [F_des]
   if (setpoint->mode.x == modeAbs) {
-    target_thrust.x = setpoint->acceleration.x                       + kp_xy * r_error.x + kd_xy * v_error.x + ki_xy * i_error_x;
-    target_thrust.y = setpoint->acceleration.y                       + kp_xy * r_error.y + kd_xy * v_error.y + ki_xy * i_error_y;
-    target_thrust.z = (setpoint->acceleration.z + GRAVITY_MAGNITUDE) + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
+    target_thrust.x = MASS * POS_GAIN_SCALE * setpoint->acceleration.x                       + kp_xy * r_error.x + kd_xy * v_error.x + ki_xy * i_error_x;
+    target_thrust.y = MASS * POS_GAIN_SCALE * setpoint->acceleration.y                       + kp_xy * r_error.y + kd_xy * v_error.y + ki_xy * i_error_y;
+    target_thrust.z = MASS * POS_GAIN_SCALE * (setpoint->acceleration.z + GRAVITY_MAGNITUDE) + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
   } else {
     assert(false);
   }
@@ -260,7 +261,7 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
   if (setpoint->mode.z == modeDisable) {
     assert(false);
   } else {
-    control->z_accel = MOTOR_UNIT * massThrust * current_thrust;
+    control->z_accel = current_thrust;
   }
 
   accelz = sensors->acc.z;
