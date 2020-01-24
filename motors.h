@@ -55,6 +55,8 @@
  */
 void motorsSetThrust(uint32_t id, float thrust);
 
+void motorsSetRatio(uint32_t id, uint16_t ithrust);
+
 /**
  * Get the PWM ratio of the motor 'id'. Return -1 if wrong ID.
  */

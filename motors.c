@@ -57,6 +57,18 @@ void motorsSetThrust(uint32_t id, float thrust)
   motor_ratios[id] = ratio;
 }
 
+void motorsSetRatio(uint32_t id, uint16_t ithrust)
+{
+  uint16_t ratio;
+  float thrust = ((float)ithrust / 65536.0f) * 60;
+  float volts = -0.0006239f * thrust * thrust + 0.088f * thrust;
+  float supply_voltage = pmGetBatteryVoltage();
+  float percentage = volts / supply_voltage;
+  percentage = percentage > 1.0f ? 1.0f : percentage;
+  ratio = percentage * UINT16_MAX;
+  motor_ratios[id] = ratio;
+}
+
 int motorsGetRatio(uint32_t id)
 {
   return motor_ratios[id];

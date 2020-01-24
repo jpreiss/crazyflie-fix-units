@@ -48,8 +48,9 @@ We added the following:
 #define MASS_THRUST (132000 * 4.0)
 
 #define POS_GAIN_SCALE (MOTOR_UNIT * MASS_THRUST / MASS)
-#define RP_GAIN_SCALE (2.0 * MOTOR_UNIT * RP_ARM / RP_INERTIA)
-#define YAW_GAIN_SCALE (4.0 * MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA)
+#define FEEDFORWARD_ACC_SCALE (MOTOR_UNIT * MASS_THRUST)
+#define RP_GAIN_SCALE (2.0f * MOTOR_UNIT * YAW_ARM / (M_SQRT_2 * RP_INERTIA))
+#define YAW_GAIN_SCALE (4.0f * MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA)
 
 // XY Position PID
 static float kp_xy = 1.5106201171875f;
@@ -153,9 +154,9 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
 
   // Desired thrust [F_des]
   if (setpoint->mode.x == modeAbs) {
-    target_thrust.x = MASS * POS_GAIN_SCALE * setpoint->acceleration.x                       + kp_xy * r_error.x + kd_xy * v_error.x + ki_xy * i_error_x;
-    target_thrust.y = MASS * POS_GAIN_SCALE * setpoint->acceleration.y                       + kp_xy * r_error.y + kd_xy * v_error.y + ki_xy * i_error_y;
-    target_thrust.z = MASS * POS_GAIN_SCALE * (setpoint->acceleration.z + GRAVITY_MAGNITUDE) + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
+    target_thrust.x = FEEDFORWARD_ACC_SCALE * setpoint->acceleration.x                       + kp_xy * r_error.x + kd_xy * v_error.x + ki_xy * i_error_x;
+    target_thrust.y = FEEDFORWARD_ACC_SCALE * setpoint->acceleration.y                       + kp_xy * r_error.y + kd_xy * v_error.y + ki_xy * i_error_y;
+    target_thrust.z = FEEDFORWARD_ACC_SCALE * (setpoint->acceleration.z + GRAVITY_MAGNITUDE) + kp_z  * r_error.z + kd_z  * v_error.z + ki_z  * i_error_z;
   } else {
     assert(false);
   }
@@ -270,6 +271,8 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
   accelz = sensors->acc.z;
 
   if (control->z_accel > 0) {
+    // TODO(japreiss): After testing to verify that behavior is same as before,
+    // we could get rid of this clamping.
     control->angular_accel.x = clamp(M.x, -RP_GAIN_SCALE * 32000, RP_GAIN_SCALE * 32000);
     control->angular_accel.y = clamp(M.y, -RP_GAIN_SCALE * 32000, RP_GAIN_SCALE * 32000);
     control->angular_accel.z = clamp(-M.z, -YAW_GAIN_SCALE * 32000, YAW_GAIN_SCALE * 32000);
