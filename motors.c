@@ -45,12 +45,10 @@ static float pmGetBatteryVoltage()
 /* Public functions */
 
 // Ithrust is thrust mapped for 65536 <==> 60 grams TOTAL thrust (15g per motor)
-void motorsSetRatio(uint32_t id, uint16_t ithrust)
+void motorsSetThrust(uint32_t id, float thrust)
 {
   uint16_t ratio;
-  ratio = ithrust;
 
-  float thrust = ((float)ithrust / 65536.0f) * 0.015;
   float volts = -(SQR(1000.0f) * SQR(4.0)) * 0.0006239f * thrust * thrust + (1000.0f * 4.0) * 0.088f * thrust;
   float supply_voltage = pmGetBatteryVoltage();
   float percentage = volts / supply_voltage;

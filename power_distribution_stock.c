@@ -30,13 +30,14 @@
 #include "motors.h"
 
 static struct {
-  uint32_t m1;
-  uint32_t m2;
-  uint32_t m3;
-  uint32_t m4;
-} motorPower;
+  float m1;
+  float m2;
+  float m3;
+  float m4;
+} motorThrust;
 
-#define limitThrust(VAL) limitUint16(VAL)
+// account for old units
+#define limitThrust(VAL) clamp((VAL) * (0.015 / 65536), 0.0, 0.015)
 
 
 void powerDistribution(const control_t *control)
@@ -49,14 +50,14 @@ void powerDistribution(const control_t *control)
   float const p = p_torque / (4.0f * RP_ARM);
   float const y = y_torque / (4.0f * TORQUE_THRUST_RATIO);
 
-  motorPower.m1 = limitThrust((MASS/4.0) * control->z_accel - r + p + y);
-  motorPower.m2 = limitThrust((MASS/4.0) * control->z_accel - r - p - y);
-  motorPower.m3 =  limitThrust((MASS/4.0) * control->z_accel + r - p + y);
-  motorPower.m4 =  limitThrust((MASS/4.0) * control->z_accel + r + p - y);
+  motorThrust.m1 = limitThrust((MASS/4.0) * control->z_accel - r + p + y);
+  motorThrust.m2 = limitThrust((MASS/4.0) * control->z_accel - r - p - y);
+  motorThrust.m3 =  limitThrust((MASS/4.0) * control->z_accel + r - p + y);
+  motorThrust.m4 =  limitThrust((MASS/4.0) * control->z_accel + r + p - y);
 
-  motorsSetRatio(MOTOR_M1, motorPower.m1);
-  motorsSetRatio(MOTOR_M2, motorPower.m2);
-  motorsSetRatio(MOTOR_M3, motorPower.m3);
-  motorsSetRatio(MOTOR_M4, motorPower.m4);
+  motorsSetThrust(MOTOR_M1, motorThrust.m1);
+  motorsSetThrust(MOTOR_M2, motorThrust.m2);
+  motorsSetThrust(MOTOR_M3, motorThrust.m3);
+  motorsSetThrust(MOTOR_M4, motorThrust.m4);
 }
 
