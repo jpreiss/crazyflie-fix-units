@@ -36,37 +36,57 @@ We will focus on the Mellinger controller in trajectory-tracking mode, since tha
 We hope other members from the Crazyflie community can apply the same methodology to the controllers that are part of their standard workflow.
 
 
-Development Environment
------------------------
+Development Process
+-------------------
 Many parts of the Crazyflie 2.0 firmware depend directly or transitively on ARM-specific and sensor-specific headers.
 For the sake of testing, we need to isolate the controller computation from all this.
-We begin by copying the relevant source files to a new directory:
+In the initial commit, we copy the relevant source files to a new directory and write a generic makefile.
+Then we start removing irrelevant code that causes compile errors.
+In fb439a5 we have removed enough to compile all the relevant stabilizer functions on x86.
 
-	controller_mellinger.c
-	motors.c
-	num.c
-	power_distribution_stock.c
-	stabilizer.c
-
-We then write a generic makefile that compiles all C sources, and start removing irrelevant code that causes compile errors.
-Instead of documenting each change we need to make, we will make a series of commits to this repository, so the diffs can be inspected.
-These commits take place between #7dac948 and #4564b1d.
-
-
-Initial outputs
----------------
-
-In #d58e794, we add code to generate random state, setpoint, and sensor inputs to the controller.
+In fb439a5, we add code to generate random state, setpoint, and sensor inputs to the controller.
 Note that for each trial, we generate these once but then run the controller 10 times.
 This ensures that we are testing the integral terms in the PID controller also.
-
 We write the output motor ratios into a text file `original_outputs.txt`.
-Looking at this file, we can see that some sequences have all zero outputs.
-This is to be expected, since our totally random states and setpoints mean that if the setpoint
-position is below the state, the best thing to do is output zero thrust.
-For the nonzero sequences, we can observe small variations from the PID integral term.
-
 We use a Python script to parse the and compare text outputs.
 
+(Looking at this file, we can see that some sequences have all zero outputs.
+This is to be expected, since our totally random states and setpoints mean that if the setpoint
+position is below the state, the best thing to do is output zero thrust.
+For the nonzero sequences, we can observe small variations from the PID integral term.)
+
+Between e7852ac and c36e180, in each commit we make a very small modification
+that brings us a little closer to proper units everywhere.
+The very small changes with randomized testing were crucial --
+in previous attempts, we tried to change too much in one step, and always made mistakes.
+An alternate approach might be to write a unit test suite with tests targeting different parts of the control system --
+for example, some tests only exercise the collective thrust control; while others only exercise attitude --
+but that seemed like more work than the mechanical approach of random testing with very small changes.
+
+In 05e7406, we use the C preprocessor and a Python script
+to resolve the numerical macros in the new controller gains into floating-point literals.
+There are still some macros left, but they are mostly to reproduce the clamping of the original version
+so the results don't change.
+That clamping at the control/power interface is not necessary now that we are using floats.
+
+Finally in 05e7406, in preparation for contributing back to the CF firmware,
+we remove our new `motorsSetThrust` and go back to the fixed-point `motorsSetRatio`.
+This is just to keep the commit smaller.
+
+Remarks
+-------
+
+- We were not handling the feedforward acceleration command correctly.
+  The manually tuned `massThrust` constant did not correctly cancel out the fixed-point units
+  in the controller / power-distribution interface.
+  For now, we have preserved the old behavior, but it appears that our feedforward command is being attenuated.
+  Fixing this could give better tracking performance.
+- Previously, the yaw and roll/pitch gains were about equal.
+  This was suspicious, because the quadrotor's yaw authority is *much* weaker than its
+  roll/pitch authority, so one should not attempt to track yaw as precisely.
+  After fixing the units (which required introducing the torque/thrust ratio system ID parameter),
+  we can see that the yaw gains in units 1/s^2 are much smaller.
+
+  
 
 [1] Förster, Julian. System Identification of the Crazyflie 2.0 Nano Quadrocopter. Bachelor Thesis. ETH Zürich. 2015.
