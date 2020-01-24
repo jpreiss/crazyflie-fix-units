@@ -47,6 +47,8 @@ We added the following:
 #define MASS_THRUST (132000 * 4.0)
 
 #define POS_GAIN_SCALE (MOTOR_UNIT * MASS_THRUST / MASS)
+#define RP_GAIN_SCALE (2.0 * MOTOR_UNIT * RP_ARM / RP_INERTIA)
+#define YAW_GAIN_SCALE (4.0 * MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA)
 
 // XY Position PID
 static float kp_xy = POS_GAIN_SCALE * 0.4;       // P
@@ -61,19 +63,19 @@ static float ki_z = POS_GAIN_SCALE * 0.05;       // I
 static float i_range_z  = 0.4;
 
 // Attitude
-static float kR_xy = (RP_ARM / RP_INERTIA) * 2.0 * 70000; // P
-static float kw_xy = (RP_ARM / RP_INERTIA) * 2.0 * 20000; // D
-static float ki_m_xy = (RP_ARM / RP_INERTIA) * 2.0 * 0.0; // I
+static float kR_xy = RP_GAIN_SCALE * 70000; // P
+static float kw_xy = RP_GAIN_SCALE * 20000; // D
+static float ki_m_xy = RP_GAIN_SCALE * 0.0; // I
 static float i_range_m_xy = 1.0;
 
 // Yaw
-static float kR_z = (TORQUE_THRUST_RATIO / YAW_INERTIA) * 4.0 * 60000; // P
-static float kw_z = (TORQUE_THRUST_RATIO / YAW_INERTIA) * 4.0 * 12000; // D
-static float ki_m_z = (TORQUE_THRUST_RATIO / YAW_INERTIA) * 4.0 * 500; // I
+static float kR_z = YAW_GAIN_SCALE * 60000; // P
+static float kw_z = YAW_GAIN_SCALE * 12000; // D
+static float ki_m_z = YAW_GAIN_SCALE * 500; // I
 static float i_range_m_z  = 1500;
 
 // roll and pitch angular velocity
-static float kd_omega_rp = (RP_ARM / RP_INERTIA) * 2.0 * 200; // D
+static float kd_omega_rp = RP_GAIN_SCALE * 200; // D
 
 
 // Helper variables
@@ -267,9 +269,9 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
   accelz = sensors->acc.z;
 
   if (control->z_accel > 0) {
-    control->angular_accel.x = clamp(MOTOR_UNIT * M.x, -(MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000, (MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000);
-    control->angular_accel.y = clamp(MOTOR_UNIT * M.y, -(MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000, (MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000);
-    control->angular_accel.z = clamp(-MOTOR_UNIT * M.z, -(MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000, (MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000);
+    control->angular_accel.x = clamp(M.x, -RP_GAIN_SCALE * 32000, RP_GAIN_SCALE * 32000);
+    control->angular_accel.y = clamp(M.y, -RP_GAIN_SCALE * 32000, RP_GAIN_SCALE * 32000);
+    control->angular_accel.z = clamp(-M.z, -YAW_GAIN_SCALE * 32000, YAW_GAIN_SCALE * 32000);
 
   } else {
     control->angular_accel = vzero();
