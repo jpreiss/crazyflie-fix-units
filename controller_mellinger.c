@@ -38,9 +38,10 @@ We added the following:
 #include <assert.h>
 #include <math.h>
 
+#include "controller_mellinger.h"
 #include "math3d.h"
 #include "position_controller.h"
-#include "controller_mellinger.h"
+#include "stabilizer_types.h"
 
 #define GRAVITY_MAGNITUDE (9.81)
 #define MOTOR_UNIT (0.015 / 65536)
@@ -51,31 +52,31 @@ We added the following:
 #define YAW_GAIN_SCALE (4.0 * MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA)
 
 // XY Position PID
-static float kp_xy = POS_GAIN_SCALE * 0.4;       // P
-static float kd_xy = POS_GAIN_SCALE * 0.2;       // D
-static float ki_xy = POS_GAIN_SCALE * 0.05;      // I
+static float kp_xy = 1.5106201171875f;
+static float kd_xy = 0.75531005859375f;
+static float ki_xy = 0.1888275146484375f;
 static float i_range_xy = 2.0;
 
 // Z Position
-static float kp_z = POS_GAIN_SCALE * 1.25;       // P
-static float kd_z = POS_GAIN_SCALE * 0.4;        // D
-static float ki_z = POS_GAIN_SCALE * 0.05;       // I
+static float kp_z = 4.7206878662109375f;
+static float kd_z = 1.5106201171875f;
+static float ki_z = 0.1888275146484375f;
 static float i_range_z  = 0.4;
 
 // Attitude
-static float kR_xy = RP_GAIN_SCALE * 70000; // P
-static float kw_xy = RP_GAIN_SCALE * 20000; // D
-static float ki_m_xy = RP_GAIN_SCALE * 0.0; // I
+static float kR_xy = 62.040161008171786f;
+static float kw_xy = 17.72576028804908f;
+static float ki_m_xy = 0.0f;
 static float i_range_m_xy = 1.0;
 
 // Yaw
-static float kR_z = YAW_GAIN_SCALE * 60000; // P
-static float kw_z = YAW_GAIN_SCALE * 12000; // D
-static float ki_m_z = YAW_GAIN_SCALE * 500; // I
+static float kR_z = 10.986328124999998f;
+static float kw_z = 2.1972656249999996f;
+static float ki_m_z = 0.09155273437499999f;
 static float i_range_m_z  = 1500;
 
 // roll and pitch angular velocity
-static float kd_omega_rp = RP_GAIN_SCALE * 200; // D
+static float kd_omega_rp = 0.17725760288049083f;
 
 
 // Helper variables
