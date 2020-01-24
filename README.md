@@ -59,9 +59,6 @@ Between e7852ac and c36e180, in each commit we make a very small modification
 that brings us a little closer to proper units everywhere.
 The very small changes with randomized testing were crucial --
 in previous attempts, we tried to change too much in one step, and always made mistakes.
-An alternate approach might be to write a unit test suite with tests targeting different parts of the control system --
-for example, some tests only exercise the collective thrust control; while others only exercise attitude --
-but that seemed like more work than the mechanical approach of random testing with very small changes.
 
 In 05e7406, we use the C preprocessor and a Python script
 to resolve the numerical macros in the new controller gains into floating-point literals.
@@ -86,6 +83,7 @@ Remarks
   roll/pitch authority, so one should not attempt to track yaw as precisely.
   After fixing the units (which required introducing the torque/thrust ratio system ID parameter),
   we can see that the yaw gains in units 1/s^2 are much smaller.
+- This change has not yet been tested on the hardware, but it will be soon.
 
   
 
