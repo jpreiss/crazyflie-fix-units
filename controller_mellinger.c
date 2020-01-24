@@ -42,7 +42,8 @@ We added the following:
 #include "position_controller.h"
 #include "controller_mellinger.h"
 
-#define GRAVITY_MAGNITUDE (9.81f)
+#define GRAVITY_MAGNITUDE (9.81)
+#define MOTOR_UNIT (0.015 / 65536)
 
 static float massThrust = 132000 * 4.0f;
 
@@ -259,15 +260,15 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
   if (setpoint->mode.z == modeDisable) {
     assert(false);
   } else {
-    control->z_accel = massThrust * current_thrust;
+    control->z_accel = MOTOR_UNIT * massThrust * current_thrust;
   }
 
   accelz = sensors->acc.z;
 
   if (control->z_accel > 0) {
-    control->angular_accel.x = clamp(M.x, -(RP_ARM / RP_INERTIA) * 64000, (RP_ARM / RP_INERTIA) * 64000);
-    control->angular_accel.y = clamp(M.y, -(RP_ARM / RP_INERTIA) * 64000, (RP_ARM / RP_INERTIA) * 64000);
-    control->angular_accel.z = clamp(-M.z, -(TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000, (TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000);
+    control->angular_accel.x = clamp(MOTOR_UNIT * M.x, -(MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000, (MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000);
+    control->angular_accel.y = clamp(MOTOR_UNIT * M.y, -(MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000, (MOTOR_UNIT * RP_ARM / RP_INERTIA) * 64000);
+    control->angular_accel.z = clamp(-MOTOR_UNIT * M.z, -(MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000, (MOTOR_UNIT * TORQUE_THRUST_RATIO / YAW_INERTIA) * 128000);
 
   } else {
     control->angular_accel = vzero();
