@@ -38,6 +38,8 @@ We hope other members from the Crazyflie community can apply the same methodolog
 
 Development Process
 -------------------
+The development process is captured in the history of Git commits to this repository.
+
 Many parts of the Crazyflie 2.0 firmware depend directly or transitively on ARM-specific and sensor-specific headers.
 For the sake of testing, we need to isolate the controller computation from all this.
 In the initial commit, we copy the relevant source files to a new directory and write a generic makefile.
@@ -73,7 +75,7 @@ This is just to keep the commit smaller.
 Remarks
 -------
 
-- We were not handling the feedforward acceleration command correctly.
+- The currrent implementation of the Mellinger controller does not handle the feedforward acceleration command correctly.
   The manually tuned `massThrust` constant did not correctly cancel out the fixed-point units
   in the controller / power-distribution interface.
   For now, we have preserved the old behavior, but it appears that our feedforward command is being attenuated.
